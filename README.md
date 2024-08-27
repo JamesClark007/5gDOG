@@ -32,6 +32,7 @@ Open the dog_door.launch file in a text editor. Add the following lines to the f
 Add these lines to dog_door.launch
 
 Example:
+
 **scripts/<scriptName.py>
 **
 
