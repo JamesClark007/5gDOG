@@ -34,6 +34,8 @@ Add these lines to dog_door.launch
 Example:
 **scripts/<scriptName.py>
 **
+
+
 catkin_install_python(PROGRAMS
   scripts/dog_door_node.py
   scripts/gps_waypoint_server_node.py
