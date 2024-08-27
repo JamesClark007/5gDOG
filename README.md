@@ -1,5 +1,5 @@
 Dog Door Setup Documentation
-	1	Updating CMakeLists.txt
+1.Updating CMakeLists.txt
 First, we need to add some lines to the CMakeLists.txt file located in the src/dog_door directory.
 
 Navigate to the directory:
@@ -19,7 +19,7 @@ Example:
 Save and close the file.
 
 
-	2	Updating dog_door.launch
+2.Updating dog_door.launch
 Next, we need to update the dog_door.launch file and add some lines there as well.
 
 Open the dog_door.launch file in a text editor. Add the following lines to the file (please replace with the actual lines that need to be added): 
@@ -44,7 +44,7 @@ catkin_install_python(PROGRAMS
 Save and close the file.
 
 
-	3	Running the Code
+3.Running the Code
 Lastly, to run the code and view the terminal:
 a. Execute the SITL (Software In The Loop) script: 
 
