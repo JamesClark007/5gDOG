@@ -12,6 +12,7 @@ Example:
 
 **<node name=“<scriptName_node.py>“ pkg="dog_door" type=“<scriptName_node.py>“ output="screen" />
 **
+
 <node name="gps_waypoint_server" pkg="dog_door" type="gps_waypoint_server_node.py" output="screen" />
     <node name="achieve_gps_waypoint_node" pkg="dog_door" type="achieve_gps_waypoint_node.py" output="screen" />
     <node name="openthread_bridge_node" pkg="dog_door" type="openthread_bridge_node.py" output="screen" />
