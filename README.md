@@ -9,7 +9,9 @@ Open the CMakeLists.txt file in a text editor. Add the following lines to the fi
 Add these lines to CMakeLists.txt
 
 Example:
-<node name=“<scriptName_node.py>“ pkg="dog_door" type=“<scriptName_node.py>“ output="screen" />
+
+**<node name=“<scriptName_node.py>“ pkg="dog_door" type=“<scriptName_node.py>“ output="screen" />
+**
 <node name="gps_waypoint_server" pkg="dog_door" type="gps_waypoint_server_node.py" output="screen" />
     <node name="achieve_gps_waypoint_node" pkg="dog_door" type="achieve_gps_waypoint_node.py" output="screen" />
     <node name="openthread_bridge_node" pkg="dog_door" type="openthread_bridge_node.py" output="screen" />
@@ -29,7 +31,8 @@ Open the dog_door.launch file in a text editor. Add the following lines to the f
 Add these lines to dog_door.launch
 
 Example:
-scripts/<scriptName.py>
+**scripts/<scriptName.py>
+**
 catkin_install_python(PROGRAMS
   scripts/dog_door_node.py
   scripts/gps_waypoint_server_node.py
