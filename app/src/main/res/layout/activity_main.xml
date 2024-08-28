@@ -16,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/infoOverlay"
+        android:id="@+id/combinedOverlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
@@ -25,40 +25,6 @@
         android:textColor="#FFFFFF"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/statusOverlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:background="#80000000"
-        android:padding="8dp"
-        android:textColor="#FFFFFF"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/gpsOverlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:background="#80000000"
-        android:padding="8dp"
-        android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toTopOf="@+id/coordinateInputLayout"
-        app:layout_constraintStart_toStartOf="parent" />
-
-
-    <TextView
-        android:id="@+id/distanceToWaypointOverlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:background="#80000000"
-        android:textColor="#FFFFFF"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/coordinateInputLayout"
-        app:layout_constraintStart_toStartOf="parent"/>
 
     <Button
         android:id="@+id/sendWaypointButton"

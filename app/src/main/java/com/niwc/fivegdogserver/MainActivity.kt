@@ -14,6 +14,9 @@ import org.osmdroid.views.MapView
 import com.example.fivegdogserver.databinding.ActivityMainBinding
 import org.json.JSONObject
 import android.graphics.Color
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private lateinit var binding: ActivityMainBinding
@@ -21,16 +24,17 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private lateinit var mapManager: MapManager
     private lateinit var gpsDataManager: GPSDataManager
     private lateinit var networkManager: NetworkManager
-    private lateinit var infoOverlay: TextView
-    private lateinit var statusOverlay: TextView
-    private lateinit var gpsOverlay: TextView
-    private lateinit var distanceToWaypointOverlay: TextView
+    private lateinit var combinedOverlay: TextView
     private lateinit var latitudeInput: EditText
     private lateinit var longitudeInput: EditText
     private lateinit var setWaypointButton: Button
     private val connectedClients = mutableListOf<String>()
     private var currentClientLocation: GeoPoint? = null
     private var currentWaypoint: GeoPoint? = null
+    private var lastStatusMessage = ""
+    private var lastStatusColor = Color.WHITE
+    private var lastGPSInfo = ""
+    private var lastDistanceToWaypoint = ""
 
     companion object {
         private const val TAG = "MainActivity"
@@ -45,10 +49,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         setContentView(binding.root)
 
         map = binding.map
-        infoOverlay = binding.infoOverlay
-        statusOverlay = binding.statusOverlay
-        gpsOverlay = binding.gpsOverlay
-        distanceToWaypointOverlay = binding.distanceToWaypointOverlay
+        combinedOverlay = binding.combinedOverlay
         latitudeInput = binding.latitudeInput
         longitudeInput = binding.longitudeInput
         setWaypointButton = binding.setWaypointButton
@@ -75,7 +76,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 mapManager.updateUserWaypoint(geoPoint)
                 showSendWaypointButton(geoPoint)
             } else {
-                updateStatusOverlay("Invalid coordinates", Color.RED)
+                updateCombinedOverlay(statusMessage = "Invalid coordinates", statusColor = Color.RED)
             }
         }
 
@@ -83,14 +84,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             try {
                 Log.d(TAG, "Starting server on port $SERVER_PORT")
                 networkManager.startServer(SERVER_PORT)
-                updateInfoOverlay("Server started successfully")
-                updateStatusOverlay("Server started", Color.GREEN)
+                updateCombinedOverlay(statusMessage = "Server started", statusColor = Color.GREEN)
                 handleClientCommunication()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start server", e)
-                val errorMessage = "Server error: ${e.message}\n${e.stackTraceToString()}"
-                updateInfoOverlay(errorMessage)
-                updateStatusOverlay("Server failed to start: ${e.message}", Color.RED)
+                updateCombinedOverlay(statusMessage = "Server failed to start: ${e.message}", statusColor = Color.RED)
             }
         }
     }
@@ -115,44 +113,48 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
         launch {
             networkManager.sendToAllClients(waypointJson.toString())
-            updateStatusOverlay("Sent waypoint to client", Color.BLUE)
+            updateCombinedOverlay(statusMessage = "Sent waypoint to client", statusColor = Color.BLUE)
             currentWaypoint = geoPoint
             updateDistanceToWaypoint()
         }
     }
 
-    private fun updateInfoOverlay(additionalInfo: String = "") {
-        val info = buildString {
+    private fun updateCombinedOverlay(statusMessage: String = lastStatusMessage, statusColor: Int = lastStatusColor, gpsInfo: String = lastGPSInfo, distanceToWaypoint: String = lastDistanceToWaypoint) {
+        lastStatusMessage = statusMessage
+        lastStatusColor = statusColor
+        lastGPSInfo = gpsInfo
+        lastDistanceToWaypoint = distanceToWaypoint
+
+        val combinedInfo = buildString {
             appendLine("Server: ${networkManager.getBoundAddress()}")
             appendLine("Clients: ${connectedClients.size}")
             connectedClients.forEach { appendLine(it) }
-            if (additionalInfo.isNotEmpty()) {
-                appendLine(additionalInfo)
+            appendLine("Status: $statusMessage")
+            if (gpsInfo.isNotEmpty()) {
+                appendLine(gpsInfo)
+            }
+            if (distanceToWaypoint.isNotEmpty()) {
+                appendLine(distanceToWaypoint)
+            }
+            currentWaypoint?.let {
+                appendLine("Current Waypoint: ${it.latitude.format(5)}, ${it.longitude.format(5)}")
             }
         }
 
-        runOnUiThread {
-            infoOverlay.text = info
-        }
-    }
-
-    private fun updateStatusOverlay(message: String, color: Int) {
-        runOnUiThread {
-            statusOverlay.text = message
-            statusOverlay.setTextColor(color)
-        }
-    }
-
-    private fun updateGPSOverlay(geoPoint: GeoPoint, totalDistance: Double) {
-        val info = buildString {
-            appendLine("GPS Data:")
-            appendLine("Latitude: ${geoPoint.latitude.format(5)}")
-            appendLine("Longitude: ${geoPoint.longitude.format(5)}")
-            appendLine("Total Distance: %.2f km".format(totalDistance))
+        val spannableString = SpannableString(combinedInfo)
+        val statusStart = combinedInfo.indexOf("Status: ")
+        if (statusStart != -1) {
+            val statusEnd = combinedInfo.indexOf('\n', statusStart)
+            spannableString.setSpan(
+                ForegroundColorSpan(statusColor),
+                statusStart,
+                if (statusEnd != -1) statusEnd else combinedInfo.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
 
         runOnUiThread {
-            gpsOverlay.text = info
+            combinedOverlay.text = spannableString
         }
     }
 
@@ -162,14 +164,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         if (clientLocation != null && waypoint != null) {
             val distance = gpsDataManager.calculateDistanceToWaypoint(clientLocation, waypoint)
-            runOnUiThread {
-                distanceToWaypointOverlay.text = "Distance to Waypoint:\n%.2f meters\n%.2f feet".format(distance.first, distance.second)
-                distanceToWaypointOverlay.visibility = View.VISIBLE
-            }
-        } else {
-            runOnUiThread {
-                distanceToWaypointOverlay.visibility = View.GONE
-            }
+            lastDistanceToWaypoint = "Distance to Waypoint:\n%.2f meters\n%.2f feet".format(distance.first, distance.second)
+            updateCombinedOverlay()
         }
     }
 
@@ -181,13 +177,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     val clientAddress = it.inetAddress.hostAddress
                     Log.d(TAG, "New client connected: $clientAddress")
                     connectedClients.add(clientAddress ?: "Unknown")
-                    updateInfoOverlay()
-                    updateStatusOverlay("New client connected: $clientAddress", Color.GREEN)
+                    updateCombinedOverlay(statusMessage = "New client connected: $clientAddress", statusColor = Color.GREEN)
                     launch { handleClient(it) }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error accepting client", e)
-                updateStatusOverlay("Error accepting client", Color.RED)
+                updateCombinedOverlay(statusMessage = "Error accepting client", statusColor = Color.RED)
             }
         }
     }
@@ -198,23 +193,22 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 val data = networkManager.receiveData(client)
                 if (data != null) {
                     Log.d(TAG, "Received data from client ${client.inetAddress.hostAddress}: $data")
-                    updateStatusOverlay("Received data from client", Color.BLUE)
+                    updateCombinedOverlay(statusMessage = "Received data from client", statusColor = Color.BLUE)
                     processClientData(data)
                 } else {
                     Log.d(TAG, "Client ${client.inetAddress.hostAddress} disconnected")
                     connectedClients.remove(client.inetAddress.hostAddress)
-                    updateInfoOverlay()
-                    updateStatusOverlay("Client disconnected: ${client.inetAddress.hostAddress}", Color.YELLOW)
+                    updateCombinedOverlay(statusMessage = "Client disconnected: ${client.inetAddress.hostAddress}", statusColor = Color.YELLOW)
                     break
                 }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error handling client ${client.inetAddress.hostAddress}", e)
-            updateStatusOverlay("Error handling client", Color.RED)
+            updateCombinedOverlay(statusMessage = "Error handling client", statusColor = Color.RED)
         } finally {
             client.close()
             connectedClients.remove(client.inetAddress.hostAddress)
-            updateInfoOverlay()
+            updateCombinedOverlay()
         }
     }
 
@@ -231,9 +225,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     currentClientLocation = geoPoint
                     val distanceTraveled = gpsDataManager.updateLocation(geoPoint)
                     mapManager.updateClientLocation(geoPoint)
-                    updateGPSOverlay(geoPoint, gpsDataManager.totalDistanceTraveled)
+                    lastGPSInfo = buildString {
+                        appendLine("GPS Data:")
+                        appendLine("Latitude: ${lat.format(5)}")
+                        appendLine("Longitude: ${lon.format(5)}")
+                        appendLine("Total Distance: %.2f km".format(gpsDataManager.totalDistanceTraveled))
+                    }
+                    updateCombinedOverlay(statusMessage = "Received GPS data", statusColor = Color.GREEN)
                     updateDistanceToWaypoint()
-                    updateStatusOverlay("Received GPS data", Color.GREEN)
                 }
                 jsonObject.has("waypoint") -> {
                     val waypointObject = jsonObject.getJSONObject("waypoint")
@@ -244,16 +243,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     currentWaypoint = geoPoint
                     mapManager.updateClientWaypoint(geoPoint)
                     updateDistanceToWaypoint()
-                    updateStatusOverlay("Received waypoint from client", Color.MAGENTA)
+                    updateCombinedOverlay(statusMessage = "Received waypoint from client", statusColor = Color.MAGENTA)
                 }
                 else -> {
                     Log.d(TAG, "Received unknown data type from client: $data")
-                    updateStatusOverlay("Received unknown data type", Color.YELLOW)
+                    updateCombinedOverlay(statusMessage = "Received unknown data type", statusColor = Color.YELLOW)
                 }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error processing client data: ${e.message}")
-            updateStatusOverlay("Error processing client data", Color.RED)
+            updateCombinedOverlay(statusMessage = "Error processing client data", statusColor = Color.RED)
         }
     }
 
@@ -275,8 +274,3 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 }
-
-// add distance from waypoint to client
-// add achieved waypoint sparkles or visual and audio indicator
-
-// satellite terrain view option for map
