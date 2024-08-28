@@ -8,8 +8,12 @@
 
     <org.osmdroid.views.MapView
         android:id="@+id/map"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/coordinateInputLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/infoOverlay"
@@ -22,16 +26,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/sendWaypointButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Send Waypoint"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="@id/infoOverlay"
-        app:layout_constraintTop_toBottomOf="@id/infoOverlay" />
-
     <TextView
         android:id="@+id/statusOverlay"
         android:layout_width="wrap_content"
@@ -40,8 +34,8 @@
         android:background="#80000000"
         android:padding="8dp"
         android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/gpsOverlay"
@@ -51,7 +45,50 @@
         android:background="#80000000"
         android:padding="8dp"
         android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toTopOf="@id/statusOverlay"
+        app:layout_constraintBottom_toTopOf="@+id/coordinateInputLayout"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/sendWaypointButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Send Waypoint"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/coordinateInputLayout"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/coordinateInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <EditText
+            android:id="@+id/latitudeInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Latitude"
+            android:inputType="numberDecimal|numberSigned" />
+
+        <EditText
+            android:id="@+id/longitudeInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Longitude"
+            android:inputType="numberDecimal|numberSigned" />
+
+        <Button
+            android:id="@+id/setWaypointButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set Waypoint" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

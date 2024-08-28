@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.EditText
+import android.widget.Button
 import kotlinx.coroutines.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
@@ -22,6 +24,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private lateinit var infoOverlay: TextView
     private lateinit var statusOverlay: TextView
     private lateinit var gpsOverlay: TextView
+    private lateinit var latitudeInput: EditText
+    private lateinit var longitudeInput: EditText
+    private lateinit var setWaypointButton: Button
     private val connectedClients = mutableListOf<String>()
 
     companion object {
@@ -40,6 +45,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         infoOverlay = binding.infoOverlay
         statusOverlay = binding.statusOverlay
         gpsOverlay = binding.gpsOverlay
+        latitudeInput = binding.latitudeInput
+        longitudeInput = binding.longitudeInput
+        setWaypointButton = binding.setWaypointButton
 
         mapManager = MapManager(this, map)
         mapManager.onWaypointUpdated = { geoPoint ->
@@ -52,6 +60,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             mapManager.userWaypoint?.let { waypoint ->
                 sendWaypointToClient(waypoint.position)
                 hideSendWaypointButton()
+            }
+        }
+
+        setWaypointButton.setOnClickListener {
+            val latitude = latitudeInput.text.toString().toDoubleOrNull()
+            val longitude = longitudeInput.text.toString().toDoubleOrNull()
+            if (latitude != null && longitude != null) {
+                val geoPoint = GeoPoint(latitude, longitude)
+                mapManager.updateUserWaypoint(geoPoint)
+                showSendWaypointButton(geoPoint)
+            } else {
+                updateStatusOverlay("Invalid coordinates", Color.RED)
             }
         }
 
@@ -226,12 +246,3 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 }
-
-// add send waypoint button testing
-// user input lat and long to visual waypoint
-// cut off visual lat and long to 5 decimal places
-// add visual waypoint coordinates
-// add distance from waypoint to client
-// add achieved waypoint sparkles or visual and audio indicator
-
-// satellite terrain view option for map
