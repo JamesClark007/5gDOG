@@ -24,10 +24,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private lateinit var infoOverlay: TextView
     private lateinit var statusOverlay: TextView
     private lateinit var gpsOverlay: TextView
+    private lateinit var distanceToWaypointOverlay: TextView
     private lateinit var latitudeInput: EditText
     private lateinit var longitudeInput: EditText
     private lateinit var setWaypointButton: Button
     private val connectedClients = mutableListOf<String>()
+    private var currentClientLocation: GeoPoint? = null
+    private var currentWaypoint: GeoPoint? = null
 
     companion object {
         private const val TAG = "MainActivity"
@@ -45,6 +48,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         infoOverlay = binding.infoOverlay
         statusOverlay = binding.statusOverlay
         gpsOverlay = binding.gpsOverlay
+        distanceToWaypointOverlay = binding.distanceToWaypointOverlay
         latitudeInput = binding.latitudeInput
         longitudeInput = binding.longitudeInput
         setWaypointButton = binding.setWaypointButton
@@ -94,6 +98,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private fun showSendWaypointButton(geoPoint: GeoPoint) {
         binding.sendWaypointButton.visibility = View.VISIBLE
         binding.sendWaypointButton.text = "Send Waypoint (${geoPoint.latitude.format(5)}, ${geoPoint.longitude.format(5)})"
+        currentWaypoint = geoPoint
+        updateDistanceToWaypoint()
     }
 
     private fun hideSendWaypointButton() {
@@ -110,6 +116,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         launch {
             networkManager.sendToAllClients(waypointJson.toString())
             updateStatusOverlay("Sent waypoint to client", Color.BLUE)
+            currentWaypoint = geoPoint
+            updateDistanceToWaypoint()
         }
     }
 
@@ -145,6 +153,23 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         runOnUiThread {
             gpsOverlay.text = info
+        }
+    }
+
+    private fun updateDistanceToWaypoint() {
+        val clientLocation = currentClientLocation
+        val waypoint = currentWaypoint
+
+        if (clientLocation != null && waypoint != null) {
+            val distance = gpsDataManager.calculateDistanceToWaypoint(clientLocation, waypoint)
+            runOnUiThread {
+                distanceToWaypointOverlay.text = "Distance to Waypoint:\n%.2f meters\n%.2f feet".format(distance.first, distance.second)
+                distanceToWaypointOverlay.visibility = View.VISIBLE
+            }
+        } else {
+            runOnUiThread {
+                distanceToWaypointOverlay.visibility = View.GONE
+            }
         }
     }
 
@@ -203,9 +228,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     val lon = gpsObject.getDouble("lon")
                     Log.d(TAG, "Received GPS data from client: lat=$lat, lon=$lon")
                     val geoPoint = GeoPoint(lat, lon)
+                    currentClientLocation = geoPoint
                     val distanceTraveled = gpsDataManager.updateLocation(geoPoint)
                     mapManager.updateClientLocation(geoPoint)
                     updateGPSOverlay(geoPoint, gpsDataManager.totalDistanceTraveled)
+                    updateDistanceToWaypoint()
                     updateStatusOverlay("Received GPS data", Color.GREEN)
                 }
                 jsonObject.has("waypoint") -> {
@@ -214,7 +241,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     val lon = waypointObject.getDouble("lon")
                     Log.d(TAG, "Received waypoint from client: lat=$lat, lon=$lon")
                     val geoPoint = GeoPoint(lat, lon)
+                    currentWaypoint = geoPoint
                     mapManager.updateClientWaypoint(geoPoint)
+                    updateDistanceToWaypoint()
                     updateStatusOverlay("Received waypoint from client", Color.MAGENTA)
                 }
                 else -> {
@@ -246,3 +275,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 }
+
+// add distance from waypoint to client
+// add achieved waypoint sparkles or visual and audio indicator
+
+// satellite terrain view option for map

@@ -22,6 +22,13 @@ class GPSDataManager {
         return distanceTraveled
     }
 
+    fun calculateDistanceToWaypoint(clientLocation: GeoPoint, waypoint: GeoPoint): Pair<Double, Double> {
+        val distanceKm = calculateDistance(clientLocation, waypoint)
+        val distanceMeters = distanceKm * 1000
+        val distanceFeet = distanceMeters * 3.28084
+        return Pair(distanceMeters, distanceFeet)
+    }
+
     private fun calculateDistance(start: GeoPoint, end: GeoPoint): Double {
         // Haversine formula to calculate distance between two points on a sphere
         val dLat = Math.toRadians(end.latitude - start.latitude)
