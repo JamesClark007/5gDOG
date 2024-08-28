@@ -3,6 +3,7 @@ package com.example.fivegdogserver
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.TextView
 import kotlinx.coroutines.*
 import org.osmdroid.config.Configuration
@@ -42,10 +43,17 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         mapManager = MapManager(this, map)
         mapManager.onWaypointUpdated = { geoPoint ->
-            sendWaypointToClient(geoPoint)
+            showSendWaypointButton(geoPoint)
         }
         gpsDataManager = GPSDataManager()
         networkManager = NetworkManager()
+
+        binding.sendWaypointButton.setOnClickListener {
+            mapManager.userWaypoint?.let { waypoint ->
+                sendWaypointToClient(waypoint.position)
+                hideSendWaypointButton()
+            }
+        }
 
         launch {
             try {
@@ -61,6 +69,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 updateStatusOverlay("Server failed to start: ${e.message}", Color.RED)
             }
         }
+    }
+
+    private fun showSendWaypointButton(geoPoint: GeoPoint) {
+        binding.sendWaypointButton.visibility = View.VISIBLE
+        binding.sendWaypointButton.text = "Send Waypoint (${geoPoint.latitude.format(5)}, ${geoPoint.longitude.format(5)})"
+    }
+
+    private fun hideSendWaypointButton() {
+        binding.sendWaypointButton.visibility = View.GONE
     }
 
     private fun sendWaypointToClient(geoPoint: GeoPoint) {
@@ -101,8 +118,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private fun updateGPSOverlay(geoPoint: GeoPoint, totalDistance: Double) {
         val info = buildString {
             appendLine("GPS Data:")
-            appendLine("Latitude: ${geoPoint.latitude}")
-            appendLine("Longitude: ${geoPoint.longitude}")
+            appendLine("Latitude: ${geoPoint.latitude.format(5)}")
+            appendLine("Longitude: ${geoPoint.longitude.format(5)}")
             appendLine("Total Distance: %.2f km".format(totalDistance))
         }
 
@@ -206,9 +223,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         networkManager.close()
         cancel() // Cancel all coroutines when the activity is destroyed
     }
+
+    private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 }
 
-// add send waypoint button
+// add send waypoint button testing
+// user input lat and long to visual waypoint
 // cut off visual lat and long to 5 decimal places
 // add visual waypoint coordinates
 // add distance from waypoint to client
