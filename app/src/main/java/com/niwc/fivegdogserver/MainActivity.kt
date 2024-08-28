@@ -207,3 +207,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         cancel() // Cancel all coroutines when the activity is destroyed
     }
 }
+
+// add send waypoint button
+// cut off visual lat and long to 5 decimal places
+// add visual waypoint coordinates
+// add distance from waypoint to client
+// add achieved waypoint sparkles or visual and audio indicator
+
+// satellite terrain view option for map
