@@ -276,3 +276,5 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 }
 
 //made send waypoint smaller
+// satellite
+// audio visual
