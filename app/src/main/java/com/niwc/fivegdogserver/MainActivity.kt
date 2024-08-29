@@ -274,3 +274,5 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 }
+
+//made send waypoint smaller
