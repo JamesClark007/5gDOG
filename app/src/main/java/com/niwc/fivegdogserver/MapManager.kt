@@ -59,7 +59,8 @@ class MapManager(private val context: Context, private val map: MapView) {
     private fun moveToWaypointAndZoom(geoPoint: GeoPoint) {
         map.controller.animateTo(geoPoint)  // This line animates the camera to the waypoint
         map.controller.setCenter(geoPoint)
-        map.controller.zoomTo(15.0, 1000L) // Zoom over 1 second
+        map.controller.setZoom(18.0)
+        map.controller.zoomTo(18.0, 1000L) // Zoom over 1 second
         println(geoPoint)
     }
 

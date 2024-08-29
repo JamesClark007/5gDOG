@@ -30,11 +30,14 @@
         android:id="@+id/sendWaypointButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="Send Waypoint"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Send\nWaypoint"
+        android:textSize="12sp"
+        android:padding="8dp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/coordinateInputLayout"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <LinearLayout
         android:id="@+id/coordinateInputLayout"

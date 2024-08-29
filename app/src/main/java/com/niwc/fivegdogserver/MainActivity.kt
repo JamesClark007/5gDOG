@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun showSendWaypointButton(geoPoint: GeoPoint) {
         binding.sendWaypointButton.visibility = View.VISIBLE
-        binding.sendWaypointButton.text = "Send Waypoint (${geoPoint.latitude.format(5)}, ${geoPoint.longitude.format(5)})"
+        binding.sendWaypointButton.text = "Send\nWaypoint"
         currentWaypoint = geoPoint
         updateDistanceToWaypoint()
     }
